@@ -24,12 +24,7 @@ limitations under the License.
 import { CastQueue } from './queuing.js';
 import { AdsTracker, SenderTracker, ContentTracker } from './cast_analytics.js';
 
-/**
- * Constants to be used for fetching media by entity from sample repository.
- */
 const ID_REGEX = '\/?([^\/]+)\/?$';
-const CONTENT_URL = 
-  'https://storage.googleapis.com/cpe-sample-media/content.json';
 
 const context = cast.framework.CastReceiverContext.getInstance();
 const playerManager = context.getPlayerManager();
@@ -110,66 +105,7 @@ const contentTracker = new ContentTracker();
 // contentTracker.startTracking();
 
 /**
- * Adds an ad to the beginning of the desired content.
- * @param {cast.framework.messages.MediaInformation} mediaInformation The target
- * mediainformation. Usually obtained through a load interceptor.
- */
-function addBreaks(mediaInformation) {
-  castDebugLogger.debug(LOG_RECEIVER_TAG, "addBreaks: " +
-    JSON.stringify(mediaInformation));
-  return fetchMediaById('fbb_ad')
-  .then((clip1) => {
-    mediaInformation.breakClips = [
-      {
-        id: 'fbb_ad',
-        title: clip1.title,
-        contentUrl: clip1.stream.dash,
-        contentType: 'application/dash+xml',
-        whenSkippable: 5
-      }
-    ];
-
-    mediaInformation.breaks = [
-      {
-        id: 'pre-roll',
-        breakClipIds: ['fbb_ad'],
-        position: 0
-      }
-    ];
-  });
-}
-
-/**
- * Obtains media from a remote repository.
- * @param  {Number} Entity or ID that contains a key to media in JSON hosted
- * by CONTENT_URL.
- * @return {Promise} Contains the media information of the desired entity.
- */
-function fetchMediaById(id) {
-  castDebugLogger.debug(LOG_RECEIVER_TAG, "fetching id: " + id);
-
-  return new Promise((accept, reject) => {
-    fetch(CONTENT_URL)
-    .then((response) => response.json())
-    .then((obj) => {
-      if (obj) {
-        if (obj[id]) {
-          accept(obj[id]);
-        }
-        else {
-          reject(`${id} not found in repository`);
-        }
-      }
-      else {
-        reject('Content repository not found.');
-      }
-    });
-  });
-}
-
-
-/**
- * Intercept the LOAD request to load and set the contentUrl and add ads.
+ * Intercept the LOAD request
  */
 playerManager.setMessageInterceptor(
   cast.framework.messages.MessageType.LOAD, loadRequestData => {
@@ -195,42 +131,8 @@ playerManager.setMessageInterceptor(
       error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
       return error;
     }
-
-    let sourceId = source.match(ID_REGEX)[1];
-
-    // Add breaks to the media information and set the contentUrl
-    return addBreaks(loadRequestData.media)
-    .then(() => {
-      // If the source is a url that points to an asset don't fetch from backend
-      if (sourceId.includes('.')) {
-        castDebugLogger.debug(LOG_RECEIVER_TAG,
-          "Interceptor received full URL");
-        loadRequestData.media.contentUrl = source;
-        return loadRequestData;
-      }
-
-      // Fetch the contentUrl if provided an ID or entity URL
-      else {
-        castDebugLogger.debug(LOG_RECEIVER_TAG, "Interceptor received ID");
-        return fetchMediaById(sourceId)
-        .then((item) => {
-          let metadata = new cast.framework.messages.GenericMediaMetadata();
-          metadata.title = item.title;
-          metadata.subtitle = item.description;
-          loadRequestData.media.contentId = item.stream.dash;
-          loadRequestData.media.contentType = 'application/dash+xml';
-          loadRequestData.media.metadata = metadata;
-          return loadRequestData;
-        })
-      }
-    })
-    .catch((errorMessage) => {
-      let error = new cast.framework.messages.ErrorData(
-        cast.framework.messages.ErrorType.LOAD_FAILED);
-      error.reason = cast.framework.messages.ErrorReason.INVALID_REQUEST;
-      castDebugLogger.error(LOG_RECEIVER_TAG, errorMessage);
-      return error;
-    });
+    loadRequestData.media.hlsSegmentFormat = cast.framework.messages.HlsSegmentFormat.TS;
+    return loadRequestData;
   }
 );
 

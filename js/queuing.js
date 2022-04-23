@@ -59,38 +59,6 @@ class CastQueue extends cast.framework.QueueBase {
       return queueData;
     }
  }
-
-  /**
-  * Picks a set of items after the reference item id and returns as the next
-  * items to be inserted into the queue. When referenceItemId is omitted, items
-  * are simply appended to the end of the queue.
-  * @param {number} referenceItemId
-  * @return {!Array<cast.framework.QueueItem>}
-  **/
-  nextItems(referenceItemId) {
-    // Return sample content.
-    let item = new cast.framework.messages.QueueItem();
-    item.media = new cast.framework.messages.MediaInformation();
-    item.media.entity = 'https://sample.com/videos/bbb';
-    item.media.customData = { "isSuggested": true };
-    return [item];
-  }
-
-  /**
-  * Picks a set of items before the reference item id and returns as the items
-  * to be inserted into the queue. WhenvreferenceItemId is omitted, items are
-  * simply appended to beginning of the queue.
-  * @param {number} referenceItemId
-  * @return {!Array<cast.framework.QueueItem>}
-  **/
-  prevItems(referenceItemId) {
-    // Return sample content.
-    let item = new cast.framework.messages.QueueItem();
-    item.media = new cast.framework.messages.MediaInformation();
-    item.media.entity = 'https://sample.com/videos/ed';
-    item.media.customData = { "isSuggested": true };
-    return [item];
-  }
 };
 
 export {

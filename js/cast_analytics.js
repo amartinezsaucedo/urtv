@@ -269,7 +269,7 @@ class SenderTracker extends Tracker {
         + "[A-Z0-9]{4}-[A-Z0-9]{12}$",
       ANDROID_SENDER: "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-"
         + "[a-z0-9]{4}-[a-z0-9]{12}\.[0-9]+\:"
-        + "(com.google.sample.cast.refplayer)-[0-9]+$"
+        + "(ar.com.unionrural.tv)-[0-9]+$"
     }
   }
 
